@@ -17,6 +17,41 @@ const dollars = c => (c / 100).toFixed(2);
 const fmtDate = d => d ? new Date(d.slice(0, 10) + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
 const fmtTs = t => t ? new Date(t.replace(' ', 'T') + (t.includes('Z') || t.includes('T') && t.length > 19 ? '' : 'Z')).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
 const badge = s => html`<span class="badge ${s}">${s.replace('_', ' ')}</span>`;
+const ICONS = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17.5" cy="9" r="2.5"/><path d="M17 14.6c2.3.2 3.9 1.7 4.5 4.4"/>',
+  card: '<rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19"/><path d="M6.5 15h4"/>',
+  tool: '<path d="M14.7 6.3a4 4 0 0 0-5 5L3.5 17.5a2 2 0 0 0 3 3l6.2-6.2a4 4 0 0 0 5-5l-2.4 2.4-2.3-.6-.6-2.3z"/>',
+  file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  building: '<path d="M4 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16"/><path d="M16 9h2a2 2 0 0 1 2 2v10"/><path d="M8 7h4M8 11h4M8 15h4M2 21h20"/>',
+  megaphone: '<path d="M3 11v3a1 1 0 0 0 1 1h2l4 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8a5 5 0 0 1 0 8"/><path d="M18 5a9 9 0 0 1 0 14"/>',
+  contact: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="11" r="2.5"/><path d="M5.5 17c.5-2 2-3 3.5-3s3 1 3.5 3M15 9.5h3M15 13h3"/>',
+  book: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 18V5.5M9 8h7"/>',
+  cog: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/>',
+  menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+  back: '<path d="M15 6l-6 6 6 6"/>',
+  alert: '<path d="M12 3.5 2.5 20h19z"/><path d="M12 10v4M12 17.4v.1"/>',
+  check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  calendar: '<rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  dollar: '<path d="M12 3v18M16.5 7.5c-.7-1.2-2.3-2-4.5-2-2.6 0-4 1.2-4 2.9 0 4.6 8.5 2.1 8.5 6.4 0 1.8-1.6 3-4.2 3-2.2 0-3.9-.8-4.7-2.2"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  inbox: '<path d="M3 13l3-8h12l3 8v6H3z"/><path d="M3 13h5l1 3h6l1-3h5"/>',
+  shield: '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  mail: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 7l9 6 9-6"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/>',
+  key: '<circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3M14 9l2 2"/>',
+};
+const icon = n => raw(`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`);
+const hue = s2 => [...String(s2)].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % 360;
+const initials = n => String(n || '?').split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+const avatar = (name, cls = '') => html`<span class="avatar ${cls}" style="--h:${hue(name)}">${initials(name)}</span>`;
+const stat = (label, value, { icon: ic, tone = '', sub = '', color = '' } = {}) => html`<div class="card stat"><div class="l">${label}</div>
+  <div class="n" ${color ? raw(`style="color:${color}"`) : ''}>${value}</div>${sub ? html`<div class="sub">${sub}</div>` : ''}${ic ? html`<div class="ico ${tone}">${icon(ic)}</div>` : ''}</div>`;
+const emptyState = (ic, text) => html`<div class="empty"><div class="ico">${icon(ic)}</div>${text}</div>`;
 const METHOD = { ach: 'Bank account (automatic)', cashapp: 'Cash App', venmo: 'Venmo', zelle: 'Zelle', wire: 'Bank wire', check: 'Check', cash: 'Cash', other: 'Other' };
 
 async function api(path, method = 'GET', body) {
@@ -88,7 +123,10 @@ async function render() {
     if (!session.user) return session.needsSetup ? setupView() : loginView();
     for (const [re, fn] of routes) {
       const m = hash.match(re);
-      if (m) return shell(hash, await fn(...m.slice(1)));
+      if (m) {
+        if (isLandlord()) counts = await api('/counts').catch(() => null);
+        return shell(hash, await fn(...m.slice(1)));
+      }
     }
     go('/');
   } catch (e) {
@@ -98,20 +136,43 @@ async function render() {
 }
 window.addEventListener('hashchange', render);
 
+let counts = null;
 function shell(hash, view) {
   const L = isLandlord();
-  const tabs = L
-    ? [['/', 'Dashboard'], ['/tenants', 'Tenants'], ['/payments', 'Payments'], ['/documents', 'Documents'], ['/tickets', 'Tickets'], ['/finances', 'Finances'], ['/property', 'Property'], ['/settings', 'Settings']]
-    : [['/', 'Home'], ['/ledger', 'Charges & payments'], ['/documents', 'Documents'], ['/tickets', 'Requests'], ['/account', 'Account']];
+  const groups = L ? [
+    ['', [['/', 'Dashboard', 'home'], ['/tenants', 'Tenants', 'users'], ['/payments', 'Payments', 'card', 'pending_payments'], ['/tickets', 'Tickets', 'tool', 'open_tickets']]],
+    ['Records', [['/documents', 'Documents', 'file'], ['/finances', 'Finances', 'chart'], ['/vendors', 'Vendors', 'contact']]],
+    ['Property', [['/property', 'Listing & photos', 'building'], ['/announcements', 'Announcements', 'megaphone'], ['/home-guide', 'Home guide', 'book']]],
+  ] : [
+    ['', [['/', 'Home', 'home'], ['/ledger', 'Charges & payments', 'card'], ['/tickets', 'Repair requests', 'tool'], ['/documents', 'Documents', 'file'], ['/home-guide', 'Your home', 'book']]],
+  ];
   const active = t => (t === '/' ? hash === '/' : hash.startsWith(t));
-  $app.innerHTML = html`
-    <header class="top"><div class="bar">
-      <span class="brand">${session.settings.property_name || 'Rental Portal'}</span>
-      <nav>${tabs.map(([h, l]) => html`<a href="#${h}" class="${active(h) ? 'on' : ''}">${l}</a>`)}</nav>
-      <button class="sm" id="logout">Sign out</button>
-    </div></header>
-    <main>${view}</main>`.s;
-  document.getElementById('logout').onclick = async () => { await api('/logout', 'POST'); session = null; go('/'); render(); };
+  const link = ([h, label, ic, badgeKey]) => html`<a class="nav ${active(h) ? 'on' : ''}" href="#${h}">${icon(ic)}<span>${label}</span>${badgeKey && counts?.[badgeKey] ? html`<span class="pill">${counts[badgeKey]}</span>` : ''}</a>`;
+  const name = session.settings.property_name || 'Rental Portal';
+  $app.innerHTML = html`<div class="layout">
+    <aside class="side" id="side">
+      <div class="logo-row"><div class="logo">${icon('building')}</div><div><b>${name}</b><span>${L ? 'Landlord portal' : 'Resident portal'}</span></div></div>
+      ${groups.map(([label, items]) => html`${label ? html`<div class="nav-label">${label}</div>` : ''}${items.map(link)}`)}
+      <div style="flex:1"></div>
+      ${link(L ? ['/settings', 'Settings', 'cog'] : ['/account', 'Account', 'cog'])}
+      <div class="me">${avatar(session.user.name)}<div class="who"><b>${session.user.name}</b><span>${L ? 'Landlord' : 'Tenant'}</span></div>
+        <button id="logout" title="Sign out" aria-label="Sign out">${icon('logout')}</button></div>
+    </aside>
+    <div class="scrim" id="scrim"></div>
+    <div class="content">
+      <header class="mobilebar"><div class="logo">${icon('building')}</div><b>${name}</b><button id="menu" aria-label="Menu">${icon('menu')}</button></header>
+      <main>${view}</main>
+    </div></div>`.s;
+  document.body.classList.remove('menu-open');
+  document.getElementById('menu').onclick = () => document.body.classList.toggle('menu-open');
+  document.getElementById('scrim').onclick = () => document.body.classList.remove('menu-open');
+  document.getElementById('logout').onclick = async () => { await api('/logout', 'POST'); session = null; counts = null; go('/'); render(); };
+  // Any table not already in a scroll wrapper gets one, so wide tables scroll inside their card on phones.
+  $app.querySelectorAll('main table').forEach(t => {
+    if (t.parentElement.classList.contains('table-wrap')) return;
+    const w = document.createElement('div'); w.className = 'table-wrap'; t.replaceWith(w); w.appendChild(t);
+  });
+  window.scrollTo(0, 0);
   view.mount?.($app.querySelector('main'));
 }
 // Views return html with an optional .mount(root) hook.
@@ -119,7 +180,15 @@ const view = (content, mount) => Object.assign(content, { mount });
 
 // ---------- auth views ----------
 function authCard(title, body, mount) {
-  $app.innerHTML = html`<div class="auth"><div class="card"><h1>${title}</h1>${body}</div></div>`.s;
+  const prop = session?.settings?.property_name || 'Rental Portal';
+  $app.innerHTML = html`<div class="auth-wrap">
+    <section class="auth-brand">
+      <div class="logo-row"><div class="logo">${icon('building')}</div><div><b>${prop}</b><span>Resident &amp; landlord portal</span></div></div>
+      <div><h2>Your home, handled.</h2><p>Pay rent, request repairs and keep every document in one secure place.</p>
+        <ul class="auth-points"><li><span class="ico">${icon('card')}</span>See what's due and pay your way</li><li><span class="ico">${icon('tool')}</span>Request repairs with photos</li><li><span class="ico">${icon('file')}</span>Leases and documents, always at hand</li></ul></div>
+      <small style="opacity:.6">Secure sign-in with optional two-factor authentication</small>
+    </section>
+    <section class="auth-form"><div class="auth-card"><h1>${title}</h1><div class="card">${body}</div></div></section></div>`.s;
   mount($app);
 }
 
@@ -198,7 +267,7 @@ const chargesTable = (charges, { admin = false } = {}) => charges.length ? html`
     <td class="right">${c.status === 'credit' || c.status === 'scheduled' ? '' : money(c.remaining_cents)}</td>
     <td>${badge(c.status)}</td>
     ${admin ? html`<td class="right">${c.id ? html`<button class="sm danger" data-void="${c.id}">Void</button>` : ''}</td>` : ''}
-  </tr>`)}</tbody></table></div>` : html`<div class="empty">No charges yet.</div>`;
+  </tr>`)}</tbody></table></div>` : emptyState('file', 'No charges yet.');
 
 const paymentsTable = (payments, { admin = false, showTenant = false } = {}) => payments.length ? html`
   <div class="table-wrap"><table><thead><tr><th>Date</th>${showTenant ? html`<th>Tenant</th>` : ''}<th>Method</th><th class="hide-sm">Reference</th><th class="right">Amount</th><th>Status</th>${admin ? html`<th></th>` : ''}</tr></thead>
@@ -210,7 +279,7 @@ const paymentsTable = (payments, { admin = false, showTenant = false } = {}) => 
     ${admin ? html`<td class="right">${p.status === 'pending' ? html`
       <button class="sm primary" data-review="${p.id}" data-status="confirmed">Confirm</button>
       <button class="sm" data-review="${p.id}" data-status="rejected">Reject</button>` : ''}</td>` : ''}
-  </tr>`)}</tbody></table></div>` : html`<div class="empty">No payments yet.</div>`;
+  </tr>`)}</tbody></table></div>` : emptyState('card', 'No payments yet.');
 
 const localToday = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
 
@@ -241,7 +310,7 @@ const docsTable = (docs, { showTenant = false } = {}) => docs.length ? html`
     <td>${badge(d.category)}</td>${showTenant ? html`<td>${d.tenant_name || 'All tenants'}</td>` : ''}
     <td class="hide-sm">${fmtDate(d.created_at)}<div class="mute small">${d.uploader_name}</div></td>
     <td class="right">${isLandlord() || d.uploaded_by === session.user.id ? html`<button class="sm danger" data-deldoc="${d.id}">Delete</button>` : ''}</td>
-  </tr>`)}</tbody></table></div>` : html`<div class="empty">No documents yet.</div>`;
+  </tr>`)}</tbody></table></div>` : emptyState('file', 'No documents yet.');
 
 const uploadForm = ({ tenants = null, tenantId = null } = {}) => html`
   <form id="docform" class="card" style="background:var(--mutebg);border:0">
@@ -353,22 +422,29 @@ function openPayModal(balanceCents, afterSave) {
 // ---------- tenant views ----------
 route(/^\/$/, async () => {
   if (isLandlord()) return landlordDashboard();
-  const [d, dep, insp] = await Promise.all([api('/me/ledger'), api('/me/deposit'), api('/inspections')]);
+  const [d, dep, insp, news] = await Promise.all([api('/me/ledger'), api('/me/deposit'), api('/inspections'), api('/announcements')]);
   const next = d.charges.filter(c => c.remaining_cents > 0 && c.status !== 'overdue').reverse()[0];
   const overdue = d.charges.filter(c => c.status === 'overdue');
   const recent = d.payments.slice(0, 5);
   return view(html`
-    <h1>Hi, ${session.user.name.split(' ')[0]}</h1>
+    <div class="page-head"><div><h1>Hi, ${session.user.name.split(' ')[0]}</h1><p>${session.settings.property_name || ''}</p></div></div>
+    ${news.filter(n => Date.now() - Date.parse(n.created_at.replace(' ', 'T') + 'Z') < 60 * 86400000).slice(0, 3).map(n => html`<div class="notice"><b>${n.title}</b><div style="white-space:pre-wrap">${n.body}</div><div class="when">${fmtDate(n.created_at)} · ${n.by_name}</div></div>`)}
+    <div class="hero"><div>
+      <div class="eyebrow">${d.overdue_cents > 0 ? 'Amount overdue' : d.balance_cents > 0 ? 'Balance due' : "You're all paid up"}</div>
+      <div class="amt">${money(Math.max(0, d.balance_cents))}</div>
+      <div class="note">${d.overdue_cents > 0 ? `${money(d.overdue_cents)} is past due. ` : ''}${d.balance_cents < 0 ? `You have a ${money(-d.balance_cents)} credit. ` : ''}${next ? `Next charge ${money(next.remaining_cents)} on ${fmtDate(next.due_date)}.` : d.scheduled?.[0] ? `Next rent ${money(d.scheduled[0].amount_cents)} on ${fmtDate(d.scheduled[0].due_date)}.` : ''}${d.pending_cents > 0 ? ` ${money(d.pending_cents)} awaiting confirmation.` : ''}</div></div>
+      <button class="btn light" id="pay">Make a payment</button></div>
     <div class="grid">
-      <div class="card stat"><div class="l">Current balance</div><div class="n">${money(Math.max(0, d.balance_cents))}</div>
-        ${d.balance_cents < 0 ? html`<div class="l neg">You have a ${money(-d.balance_cents)} credit</div>` : ''}</div>
-      ${d.overdue_cents > 0 ? html`<div class="card stat"><div class="l">Overdue</div><div class="n" style="color:var(--bad)">${money(d.overdue_cents)}</div></div>` : ''}
-      ${d.pending_cents > 0 ? html`<div class="card stat"><div class="l">Awaiting confirmation</div><div class="n">${money(d.pending_cents)}</div></div>` : ''}
-      ${next && !overdue.length ? html`<div class="card stat"><div class="l">Next due ${fmtDate(next.due_date)}</div><div class="n">${money(next.remaining_cents)}</div></div>` : ''}
+      ${stat('Monthly rent', money(session.user.rent_cents), { icon: 'dollar', sub: `Due on day ${session.user.due_day} of each month` })}
+      ${dep.held_cents > 0 ? stat('Security deposit', money(dep.held_cents), { icon: 'shield', tone: 'ok', sub: 'Held by your landlords' }) : ''}
+      ${session.user.lease_start && session.user.lease_end ? (() => {
+        const a = Date.parse(session.user.lease_start), b = Date.parse(session.user.lease_end), pct = Math.max(0, Math.min(100, Math.round((Date.now() - a) / (b - a) * 100)));
+        const left = Math.max(0, Math.round((b - Date.now()) / (30.4 * 86400000)));
+        return html`<div class="card stat"><div class="l">Lease ends</div><div class="n" style="font-size:22px">${fmtDate(session.user.lease_end)}</div>
+          <div class="progress" style="margin:10px 0 6px"><span style="width:${pct}%"></span></div><div class="sub">${left} month${left === 1 ? '' : 's'} remaining</div><div class="ico info">${icon('calendar')}</div></div>`;
+      })() : ''}
     </div>
-    <div class="card row sp"><div><h2 style="margin:0">Pay rent</h2><span class="mute small">Cash App, Venmo, Zelle, wire, and more</span></div>
-      <button class="primary" id="pay">Make a payment</button></div>
-    <div class="card"><h2>Recent payments</h2>${paymentsTable(recent)}</div>
+    <div class="card"><div class="row sp" style="margin-bottom:6px"><h2 style="margin:0">Recent payments</h2><a class="btn sm" href="#/ledger">View all</a></div>${paymentsTable(recent)}</div>
     ${dep.entries.length ? html`<div class="card"><h2>Security deposit</h2><p><b style="font-size:20px">${money(dep.held_cents)}</b> <span class="mute">held by your landlords</span></p>
       <table><tbody>${dep.entries.map(e => html`<tr><td>${fmtDate(e.entry_date)}</td><td>${e.kind}</td><td>${e.note}</td><td class="right">${e.kind === 'received' || e.kind === 'interest' ? '+' : '−'}${money(e.amount_cents)}</td></tr>`)}</tbody></table></div>` : ''}
     ${insp.length ? html`<div class="card"><h2>Inspection reports</h2><table><tbody>${insp.map(i => html`<tr class="click" data-go="/inspections/${i.id}"><td><b>${i.kind === 'move_in' ? 'Move-in' : 'Move-out'}</b> · ${fmtDate(i.inspect_date)}</td><td>${i.acknowledged_at ? badge('confirmed') : badge('pending')} ${i.acknowledged_at ? 'reviewed' : 'please review'}</td></tr>`)}</tbody></table></div>` : ''}
@@ -431,9 +507,9 @@ route(/^\/tickets$/, async () => {
 });
 
 route(/^\/tickets\/(\d+)$/, async id => {
-  const [{ ticket: t, comments }, photos] = await Promise.all([api('/tickets/' + id), api('/attachments?ticket_id=' + id)]);
+  const [{ ticket: t, comments }, photos, vendors] = await Promise.all([api('/tickets/' + id), api('/attachments?ticket_id=' + id), isLandlord() ? api('/vendors') : []]);
   const L = isLandlord();
-  return view(html`<p><a href="#/tickets">← All tickets</a></p>
+  return view(html`<a class="back" href="#/tickets">${icon('back')} All tickets</a>
     <div class="card"><div class="row sp"><h1 style="margin:0">${t.title}</h1><div>${badge(t.status)}</div></div>
       <p class="mute small">#${t.id} · ${t.category} · ${t.priority} priority · opened ${fmtTs(t.created_at)}${L ? ` by ${t.created_by_name || t.tenant_name}${t.unit ? ' (' + t.unit + ')' : ''}` : t.created_by_name ? ` by ${t.created_by_name}` : ''}</p>
       <p style="white-space:pre-wrap">${t.description}</p>
@@ -441,6 +517,7 @@ route(/^\/tickets\/(\d+)$/, async id => {
       <div class="row">${L
         ? ['open', 'in_progress', 'resolved'].map(s => html`<button class="sm ${t.status === s ? 'primary' : ''}" data-status="${s}">${s.replace('_', ' ')}</button>`)
         : t.status === 'resolved' ? '' : html`<button class="sm" data-status="resolved">Mark resolved</button>`}</div></div>
+    ${L ? F.workCard(t, vendors) : ''}
     <div class="card"><h2>Conversation</h2>
       ${comments.length ? comments.map(c => html`<div class="comment ${c.role} ${c.internal ? 'internal' : ''}"><b>${c.name}</b> ${c.internal ? html`<span class="badge pending">private note</span>` : ''} <span class="mute small">${fmtTs(c.created_at)}</span><div style="white-space:pre-wrap">${c.body}</div></div>`) : html`<p class="mute">No replies yet.</p>`}
       <form id="f"><div class="field"><textarea name="body" placeholder="Write a reply…" required></textarea></div>
@@ -448,6 +525,7 @@ route(/^\/tickets\/(\d+)$/, async id => {
       <div class="err"></div><button class="primary" type="submit">Send</button></form></div>`,
   root => {
     F.bindPhotos(root, render);
+    if (L) F.bindWork(root, id, t);
     submitter(root, '#f', async d => { await api(`/tickets/${id}/comments`, 'POST', d); render(); });
     root.querySelectorAll('[data-status]').forEach(b => b.onclick = async () => { await api(`/tickets/${id}/status`, 'PUT', { status: b.dataset.status }); toast('Ticket updated'); render(); });
   });
@@ -457,27 +535,32 @@ route(/^\/tickets\/(\d+)$/, async id => {
 async function landlordDashboard() {
   const d = await api('/dashboard');
   const pending = (await api('/payments')).filter(p => p.status === 'pending');
-  return view(html`<h1>Dashboard</h1>
+  const hr = new Date().getHours();
+  const hello = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  const note = a => a.kind === 'lease' ? html`<b>${a.name}</b>'s lease ends ${fmtDate(a.date)} (${a.days} day${a.days === 1 ? '' : 's'}). Time to decide on renewal or listing.`
+    : a.kind === 'insurance' ? html`<b>${a.name}</b>'s renters insurance ${a.days < 0 ? 'expired' : 'expires'} ${fmtDate(a.date)}.`
+    : a.kind === 'backup' ? html`<a href="#/settings">Download a backup</a> — ${a.date ? 'the last one was ' + fmtDate(a.date) : 'none has been downloaded yet'}.`
+    : html`<a href="#/settings">Email isn't set up</a>, so reminders and alerts aren't being sent.`;
+  return view(html`<div class="page-head"><div><h1>${hello}, ${session.user.name.split(' ')[0]}</h1>
+      <p>${session.settings.property_name || ''} · ${new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p></div>
+      <div class="row"><a class="btn" href="#/tenants">${icon('users')} Tenants</a><a class="btn primary" href="#/tickets">${icon('tool')} Open tickets</a></div></div>
     <div class="grid">
-      <div class="card stat"><div class="l">Outstanding</div><div class="n">${money(d.outstanding_cents)}</div></div>
-      <div class="card stat"><div class="l">Overdue</div><div class="n" style="color:${d.overdue_cents ? 'var(--bad)' : 'inherit'}">${money(d.overdue_cents)}</div></div>
-      <div class="card stat"><div class="l">Collected this month</div><div class="n">${money(d.collected_this_month_cents)}</div></div>
-      <div class="card stat"><div class="l">Open tickets</div><div class="n">${d.open_tickets}</div></div></div>
-    ${d.attention.length ? html`<div class="card"><h2>Needs attention</h2><table><tbody>${d.attention.map(a => html`<tr ${a.tenant_id ? raw(`class="click" data-go="/tenants/${a.tenant_id}"`) : ''}>
-      <td>${a.kind === 'lease' ? html`<b>${a.name}</b>'s lease ends ${fmtDate(a.date)} (${a.days} day${a.days === 1 ? '' : 's'}). Decide on renewal or listing.`
-        : a.kind === 'insurance' ? html`<b>${a.name}</b>'s renters insurance ${a.days < 0 ? 'expired' : 'expires'} ${fmtDate(a.date)}.`
-        : a.kind === 'backup' ? html`<a href="#/settings">Download a backup</a> — ${a.date ? 'the last one was ' + fmtDate(a.date) : 'none has been downloaded yet'}.`
-        : html`<a href="#/settings">Email isn't set up</a>, so reminders and alerts aren't being sent.`}</td></tr>`)}</tbody></table></div>` : ''}
+      ${stat('Outstanding', money(d.outstanding_cents), { icon: 'dollar', tone: d.outstanding_cents ? 'warn' : 'ok', sub: 'Due from tenants today' })}
+      ${stat('Overdue', money(d.overdue_cents), { icon: 'alert', tone: d.overdue_cents ? 'bad' : 'ok', color: d.overdue_cents ? 'var(--bad)' : '', sub: d.overdue_cents ? 'Needs follow-up' : 'Everyone is current' })}
+      ${stat('Collected this month', money(d.collected_this_month_cents), { icon: 'check', tone: 'ok', sub: 'Confirmed payments' })}
+      ${stat('Open tickets', d.open_tickets, { icon: 'tool', tone: 'info', sub: d.open_tickets ? 'Awaiting attention' : 'All caught up' })}</div>
+    ${d.attention.length ? html`<div class="card"><h2>Needs attention</h2>${d.attention.map(a => html`<div class="callout ${a.kind === 'insurance' && a.days < 0 ? 'bad' : ''}" ${a.tenant_id ? raw(`data-go="/tenants/${a.tenant_id}" style="cursor:pointer"`) : ''}>
+      <div class="ico ${a.kind === 'lease' ? 'info' : 'warn'}">${icon(a.kind === 'lease' ? 'calendar' : a.kind === 'insurance' ? 'shield' : a.kind === 'backup' ? 'file' : 'mail')}</div><div>${note(a)}</div></div>`)}</div>` : ''}
     ${pending.length ? html`<div class="card"><h2>Payments waiting for you to confirm (${pending.length})</h2>${paymentsTable(pending, { admin: true, showTenant: true })}</div>` : ''}
-    <div class="card"><div class="row sp"><h2>Tenants</h2><a class="btn" href="#/tenants">Manage</a></div>${tenantTable(d.tenants)}</div>`,
+    <div class="card"><div class="row sp" style="margin-bottom:8px"><h2 style="margin:0">Tenants</h2><a class="btn sm" href="#/tenants">Manage</a></div>${tenantTable(d.tenants)}</div>`,
   root => { bindActions(root, render); bindRows(root); });
 }
 
 const tenantTable = tenants => tenants.length ? html`<div class="table-wrap"><table><thead><tr><th>Tenant</th><th class="hide-sm">Unit</th><th class="right">Rent</th><th class="right">Balance</th><th>Status</th></tr></thead>
-  <tbody>${tenants.map(t => html`<tr class="click" data-go="/tenants/${t.id}"><td><b>${t.name}</b><div class="mute small">${t.email}</div></td><td class="hide-sm">${t.unit}</td>
+  <tbody>${tenants.map(t => html`<tr class="click" data-go="/tenants/${t.id}"><td><div class="person">${avatar(t.name)}<div><b>${t.name}${t.members?.length ? ' & ' + t.members.join(', ') : ''}</b><div class="mute small">${t.email}</div></div></div></td><td class="hide-sm">${t.unit}</td>
   <td class="right">${money(t.rent_cents)}</td><td class="right">${money(t.balance_cents)}</td>
   <td>${!t.active ? badge('inactive') : t.pending_invite ? badge('pending') : t.overdue_cents > 0 ? badge('overdue') : t.balance_cents > 0 ? badge('due') : badge('paid')}</td></tr>`)}</tbody></table></div>`
-  : html`<div class="empty">No tenants yet. Add your first tenant to get started.</div>`;
+  : emptyState('users', 'No tenants yet. Add your first tenant to get started.');
 const bindRows = root => root.querySelectorAll('[data-go]').forEach(r => r.onclick = () => go(r.dataset.go));
 
 const tenantForm = (t = {}) => html`
@@ -510,25 +593,26 @@ const inviteUrl = token => `${location.origin}/#/invite/${token}`;
 
 route(/^\/tenants\/(\d+)$/, async id => {
   const d = await api('/tenants/' + id);
-  const [docs, dep, insp] = await Promise.all([api('/documents?tenant_id=' + id), api(`/tenants/${id}/deposit`), api('/inspections?tenant_id=' + id)]);
+  const [docs, dep, insp, hist] = await Promise.all([api('/documents?tenant_id=' + id), api(`/tenants/${id}/deposit`), api('/inspections?tenant_id=' + id), api(`/tenants/${id}/lease-history`)]);
   const t = d.tenant;
   const yr = new Date().getFullYear();
-  return view(html`<p><a href="#/tenants">← All tenants</a></p>
-    <div class="card"><div class="row sp"><div><h1 style="margin:0">${t.name}</h1><span class="mute">${t.email}${t.phone ? ' · ' + t.phone : ''}${t.unit ? ' · ' + t.unit : ''}</span></div>
+  return view(html`<a class="back" href="#/tenants">${icon('back')} All tenants</a>
+    <div class="card"><div class="row sp"><div class="person">${avatar(t.name, 'lg')}<div><h1 style="margin:0">${t.name}</h1><span class="mute">${t.email}${t.phone ? ' · ' + t.phone : ''}${t.unit ? ' · ' + t.unit : ''}</span></div></div>
       <div class="row"><button id="edit">Edit terms</button><button class="primary" id="rec">Record payment</button><button id="chg">Add charge</button>
         <a class="btn" href="/api/statement?tenant_id=${id}&year=${yr}" target="_blank">Statement</a></div></div>
       ${d.invite_token ? html`<div class="box" style="margin-top:12px"><b>Invite link</b> (send this to ${t.name.split(' ')[0]} so they can set a password):\n<a href="${inviteUrl(d.invite_token)}">${inviteUrl(d.invite_token)}</a></div>`
         : html`<p><button class="sm" id="reinvite">Reset password / new invite link</button></p>`}</div>
-    <div class="grid"><div class="card stat"><div class="l">Balance</div><div class="n">${money(d.balance_cents)}</div></div>
-      <div class="card stat"><div class="l">Monthly rent</div><div class="n">${money(t.rent_cents)}</div><div class="l">due day ${t.due_day}</div></div>
-      <div class="card stat"><div class="l">Pending payments</div><div class="n">${money(d.pending_cents)}</div></div></div>
+    <div class="grid">${stat('Balance', money(d.balance_cents), { icon: 'dollar', tone: d.balance_cents > 0 ? 'warn' : 'ok', sub: d.overdue_cents ? money(d.overdue_cents) + ' overdue' : 'Nothing overdue' })}
+      ${stat('Monthly rent', money(t.rent_cents), { icon: 'card', sub: 'Due on day ' + t.due_day })}
+      ${stat('Pending payments', money(d.pending_cents), { icon: 'clock', tone: d.pending_cents ? 'warn' : '', sub: 'Waiting for confirmation' })}</div>
     ${scheduleCards(d, { admin: true })}
     <div class="card"><h2>Payments</h2>${paymentsTable(d.payments, { admin: true })}</div>
-    ${F.householdCard(t, d.members)}${F.depositCard(dep)}${F.inspectionsCard(insp)}
+    ${F.leaseCard(t, hist)}${F.householdCard(t, d.members)}${F.depositCard(dep)}${F.inspectionsCard(insp)}
     <div class="card"><h2>Documents</h2>${docsTable(docs)}${uploadForm({ tenantId: id })}</div>`,
   root => {
     bindRows(root);
     F.bindTenantExtras(root, id, render, t);
+    F.bindLease(root, id, render, t);
     bindActions(root, render);
     bindDocs(root, render);
     root.querySelector('#reinvite')?.addEventListener('click', async () => {
@@ -573,6 +657,7 @@ route(/^\/payments$/, async () => {
 const F = {};
 install({
   html, raw, esc, api, toast, modal, submitter, route, go, view, money, dollars, fmtDate, fmtTs, badge, isLandlord, render, bindActions, fmtSize, localToday, F,
+  icon, avatar, stat, emptyState, paymentsTable,
   getSession: () => session,
   setSettings: s2 => { session.settings = s2; },
   reloadSession: () => { session = null; render(); },

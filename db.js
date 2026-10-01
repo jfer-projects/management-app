@@ -174,6 +174,35 @@ CREATE TABLE IF NOT EXISTS attachments (
 );
 `);
 
+db.exec(`
+CREATE TABLE IF NOT EXISTS announcements (
+  id INTEGER PRIMARY KEY,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS vendors (
+  id INTEGER PRIMARY KEY,
+  name TEXT NOT NULL,
+  trade TEXT,
+  phone TEXT,
+  email TEXT,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS lease_history (
+  id INTEGER PRIMARY KEY,
+  tenant_id INTEGER NOT NULL REFERENCES users(id),
+  old_end TEXT, new_end TEXT,
+  old_rent_cents INTEGER, new_rent_cents INTEGER,
+  effective_date TEXT,
+  note TEXT,
+  created_by INTEGER REFERENCES users(id),
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+`);
+
 function addColumn(table, col, def) {
   if (!db.prepare(`SELECT 1 FROM pragma_table_info('${table}') WHERE name=?`).get(col)) db.exec(`ALTER TABLE ${table} ADD COLUMN ${col} ${def}`);
 }
@@ -187,6 +216,8 @@ addColumn('users', 'email_reminders', 'INTEGER NOT NULL DEFAULT 1');
 addColumn('payments', 'paid_by', 'INTEGER');
 addColumn('payments', 'reviewed_by', 'INTEGER');
 addColumn('tickets', 'created_by', 'INTEGER');
+addColumn('tickets', 'vendor_id', 'INTEGER');
+addColumn('tickets', 'cost_cents', 'INTEGER');
 addColumn('ticket_comments', 'internal', 'INTEGER NOT NULL DEFAULT 0');
 
 export const DATA_PATH = dir;

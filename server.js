@@ -14,6 +14,7 @@ import { notify, link, emailConfigured, sendPending, runReminders } from './emai
 import { mountSecurity, verifySecondFactor, snapshot } from './security.js';
 import { mountFinance } from './finance.js';
 import { mountMedia } from './media.js';
+import { mountExtras } from './extras.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -461,9 +462,11 @@ app.delete('/api/documents/:id', needUser, wrap((req, res) => {
 }));
 
 // ---------- tickets ----------
-const ticketSelect = `SELECT t.*, u.name AS tenant_name, u.unit AS unit, cb.name AS created_by_name,
+const ticketSelect = `SELECT t.*, u.name AS tenant_name, u.unit AS unit, cb.name AS created_by_name, v.name AS vendor_name,
   (SELECT COUNT(*) FROM ticket_comments c WHERE c.ticket_id=t.id AND (c.internal=0 OR ?)) AS comment_count
-  FROM tickets t JOIN users u ON u.id=t.tenant_id LEFT JOIN users cb ON cb.id=t.created_by`;
+  FROM tickets t JOIN users u ON u.id=t.tenant_id LEFT JOIN users cb ON cb.id=t.created_by LEFT JOIN vendors v ON v.id=t.vendor_id`;
+// Which vendor handled a job and what it cost is landlord-only.
+const forViewer = (user, t) => (user.role === 'landlord' ? t : { ...t, vendor_id: undefined, vendor_name: undefined, cost_cents: undefined });
 
 function ticketOr404(req) {
   const t = db.prepare(`${ticketSelect} WHERE t.id=?`).get(req.user.role === 'landlord' ? 1 : 0, req.params.id);
@@ -476,7 +479,7 @@ app.get('/api/tickets', needUser, wrap((req, res) => {
   const rows = L
     ? db.prepare(`${ticketSelect} ORDER BY (t.status='resolved'), t.updated_at DESC`).all(1)
     : db.prepare(`${ticketSelect} WHERE t.tenant_id=? ORDER BY (t.status='resolved'), t.updated_at DESC`).all(0, acctId(req.user));
-  res.json(rows);
+  res.json(rows.map(t => forViewer(req.user, t)));
 }));
 
 app.post('/api/tickets', needUser, wrap((req, res) => {
@@ -496,7 +499,7 @@ app.get('/api/tickets/:id', needUser, wrap((req, res) => {
   const L = req.user.role === 'landlord';
   const comments = db.prepare(`SELECT c.*, u.name, u.role FROM ticket_comments c JOIN users u ON u.id=c.user_id
     WHERE c.ticket_id=? ${L ? '' : 'AND c.internal=0'} ORDER BY c.id`).all(ticket.id);
-  res.json({ ticket, comments });
+  res.json({ ticket: forViewer(req.user, ticket), comments });
 }));
 
 app.post('/api/tickets/:id/comments', needUser, wrap((req, res) => {
@@ -552,6 +555,7 @@ app.get('/api/dashboard', needUser, needLandlord, wrap((_req, res) => {
 
 mountFinance(app);
 mountMedia(app);
+mountExtras(app);
 
 // ---------- static + errors ----------
 const here = path.dirname(fileURLToPath(import.meta.url));

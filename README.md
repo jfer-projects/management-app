@@ -18,7 +18,8 @@ A small, cheap-to-host rental management web app for two landlords and a few ten
 - Ticket inbox with private landlord-only notes.
 - Dashboard "needs attention": leases ending, insurance expiring, backups overdue.
 - Finances: expense log with receipt photos, yearly income/expense summary, CSV export for taxes.
-- **Property & listing**: description, details, amenities and a photo gallery (captions, cover photo, reorder, download all, printable sheet, copy-ready listing text) so the unit can be listed quickly later.
+- Announcements (shown to tenants, optionally emailed), lease renewal / rent-change tool with history, a vendor directory with per-ticket repair cost tracking, and a tenant-facing "Your home" guide (trash day, parking, emergency contacts…).
+- - **Property & listing**: description, details, amenities and a photo gallery (captions, cover photo, reorder, download all, printable sheet, copy-ready listing text) so the unit can be listed quickly later.
 - Email notifications and rent reminders; password reset; optional two-factor sign-in; backups.
 
 ## Run locally

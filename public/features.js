@@ -1,6 +1,8 @@
+import { installPages } from './pages.js';
+
 // Newer pages and widgets. app.js calls install() with its shared helpers before the first render.
 export function install(ctx) {
-  const { html, raw, api, toast, modal, submitter, route, go, view, money, dollars, fmtDate, fmtTs, badge, esc, getSession, isLandlord, render, bindActions, fmtSize } = ctx;
+  const { html, raw, api, toast, modal, submitter, route, go, view, money, dollars, fmtDate, fmtTs, badge, esc, getSession, isLandlord, render, bindActions, fmtSize, icon, emptyState } = ctx;
   const F = ctx.F;
 
   // ---------- photos & attachments ----------
@@ -134,7 +136,7 @@ export function install(ctx) {
     const { inspection: n, items } = await api('/inspections/' + id);
     const L = isLandlord();
     const title = `${n.kind === 'move_in' ? 'Move-in' : 'Move-out'} inspection`;
-    return view(html`<p><a href="#${L ? '/tenants/' + n.tenant_id : '/'}">← Back</a></p>
+    return view(html`<a class="back" href="#${L ? '/tenants/' + n.tenant_id : '/'}">${icon('back')} Back</a>
       <div class="card"><div class="row sp"><div><h1 style="margin:0">${title}</h1><span class="mute">${n.tenant_name}${n.unit ? ' · ' + n.unit : ''} · ${fmtDate(n.inspect_date)}</span></div>
         <div class="row"><a class="btn" href="/api/inspections/${id}/report" target="_blank">Printable report</a>
         ${L ? html`${n.status === 'draft' ? html`<button class="primary" id="share">Share with tenant</button>` : html`<span>${badge('confirmed')} shared</span>`}<button class="danger" id="delinsp">Delete</button>` : ''}</div></div>
@@ -327,4 +329,6 @@ export function install(ctx) {
       });
     });
   });
+
+  installPages(ctx);
 }

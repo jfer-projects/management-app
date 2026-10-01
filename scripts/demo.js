@@ -91,10 +91,19 @@ await send('L', `item_id=${idet.items[3].id}&filename=dishwasher.png`, scene(120
 await L('POST', `/inspections/${insp.id}/share`);
 await call('T', 'POST', `/inspections/${insp.id}/ack`, { comment: 'Looks right to me.' });
 
+// announcements, vendors, home guide
+await L('POST', '/announcements', { title: 'Water shut-off Tuesday', body: 'The building water will be off from 9am to noon for valve work. Please store water if you need it.' });
+await call('W', 'POST', '/announcements', { title: 'Welcome to the new tenant portal', body: 'You can now pay rent, request repairs and find your lease here.' });
+const plumber = await L('POST', '/vendors', { name: 'Reliable Plumbing', trade: 'Plumber', phone: '555-0140', email: 'dispatch@reliable.example', notes: 'Ask for Marco. Weekend rates apply.' });
+await L('POST', '/vendors', { name: 'BrightSpark Electric', trade: 'Electrician', phone: '555-0177' });
+await L('PUT', '/home-guide', { welcome: 'Welcome home! Reach out through the portal for anything you need.', trash: 'Trash pickup is Tuesday morning. Recycling is every other Thursday. Bins go in the garage room.',
+  parking: 'Your assigned space is #14. Guests park on Elm Street.', quiet_hours: 'Quiet hours are 10pm to 7am.', emergency: 'Water shut-off: under the kitchen sink. After-hours emergencies: (555) 010-2030', internet: 'Fiber is available from the building. Call the provider to schedule an install.' });
+
 const tk = await call('T', 'POST', '/tickets', { title: 'Kitchen faucet dripping', description: 'Steady drip from the base of the faucet since Monday.', category: 'plumbing', priority: 'normal' });
 await L('POST', `/tickets/${tk.id}/comments`, { body: 'Thanks, plumber is scheduled for Thursday morning.' });
 await send('T', `ticket_id=${tk.id}&filename=faucet.png&caption=Faucet`, scene(70, 110, 150));
 await L('POST', `/tickets/${tk.id}/comments`, { body: 'Ask the plumber to bring the cartridge for this model.', internal: true });
 await L('PUT', `/tickets/${tk.id}/status`, { status: 'in_progress' });
+await L('PUT', `/tickets/${tk.id}/work`, { vendor_id: plumber.id, cost: '140' });
 await call('T', 'POST', '/tickets', { title: 'Intercom buzzer not working', description: 'Guests cannot buzz me in.', category: 'electrical', priority: 'low' });
 console.log(`\nDemo ready: ${base}\n  landlord: demo@example.com / demopassword1\n  tenant:   tina@example.com / tenantpass1  (co-tenant tom@example.com / tompassword1)\n  spouse:   wife@example.com / wifepassword1\n`);
